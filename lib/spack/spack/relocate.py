@@ -210,11 +210,19 @@ def modify_elf_object(path_name, orig_rpath, new_rpath):
         tty.die('relocation not supported for this platform')
 
 
-def needs_binary_relocation(filetype, os_id=None):
+def needs_binary_relocation(filename, os_id=None):
     """
     Check whether the given filetype is a binary that may need relocation.
     """
     retval = False
+
+    filetype = get_filetype(filename)
+    command = Executable('readelf')
+    output = command('-d', '%s' %
+                     os.path.realpath(filename), output=str, err=str)
+
+    if "no dynamic section" in output:
+        return False
     if "relocatable" in filetype:
         return False
     if "link to" in filetype:
@@ -254,9 +262,10 @@ def relocate_binary(path_names, old_dir, new_dir):
                                 new_rpaths, new_deps, new_idpath)
     elif platform.system() == 'Linux':
         for path_name in path_names:
-            orig_rpaths = get_existing_elf_rpaths(path_name)
-            new_rpaths = substitute_rpath(orig_rpaths, old_dir, new_dir)
-            modify_elf_object(path_name, orig_rpaths, new_rpaths)
+            if needs_binary_relocation(path_name, platform.system()):
+                orig_rpaths = get_existing_elf_rpaths(path_name)
+                new_rpaths = substitute_rpath(orig_rpaths, old_dir, new_dir)
+                modify_elf_object(path_name, orig_rpaths, new_rpaths)
     else:
         tty.die("Relocation not implemented for %s" % platform.system())
 

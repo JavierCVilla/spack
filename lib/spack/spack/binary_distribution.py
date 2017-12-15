@@ -112,7 +112,7 @@ def write_buildinfo_file(prefix, workdir, rel=False):
         for filename in files:
             path_name = os.path.join(root, filename)
             filetype = relocate.get_filetype(path_name)
-            if relocate.needs_binary_relocation(filetype, os_id):
+            if relocate.needs_binary_relocation(path_name, os_id):
                 rel_path_name = os.path.relpath(path_name, prefix)
                 binary_to_relocate.append(rel_path_name)
             elif relocate.needs_text_relocation(filetype):
