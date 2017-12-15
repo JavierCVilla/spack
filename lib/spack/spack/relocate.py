@@ -217,12 +217,7 @@ def needs_binary_relocation(filename, os_id=None):
     retval = False
 
     filetype = get_filetype(filename)
-    command = Executable('readelf')
-    output = command('-d', '%s' %
-                     os.path.realpath(filename), output=str, err=str)
 
-    if "no dynamic section" in output:
-        return False
     if "relocatable" in filetype:
         return False
     if "link to" in filetype:
@@ -230,7 +225,12 @@ def needs_binary_relocation(filename, os_id=None):
     if os_id == 'Darwin':
         return ("Mach-O" in filetype)
     elif os_id == 'Linux':
-        return ("ELF" in filetype)
+        if ("ELF" in filetype):
+            command = Executable('readelf')
+            output = command('-d', '%s' %
+                             os.path.realpath(filename), output=str, err=str)
+            return ("no dynamic section" in output)
+        return False
     else:
         tty.die("Relocation not implemented for %s" % os_id)
     return retval
