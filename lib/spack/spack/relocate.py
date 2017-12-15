@@ -229,7 +229,7 @@ def needs_binary_relocation(filename, os_id=None):
             command = Executable('readelf')
             output = command('-d', '%s' %
                              os.path.realpath(filename), output=str, err=str)
-            return ("no dynamic section" in output)
+            return ("no dynamic section" not in output)
         return False
     else:
         tty.die("Relocation not implemented for %s" % os_id)
